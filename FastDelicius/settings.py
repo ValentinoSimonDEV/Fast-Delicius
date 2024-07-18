@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from decouple import config
+from decouple import config , Csv
 import environ
 
 
@@ -22,7 +22,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 
 
-CSRF_TRUSTED_ORIGINS =config['CSRF_TRUSTED_ORIGINS']
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
+
 
 # Token de MercadoPago
 
