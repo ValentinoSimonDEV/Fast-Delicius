@@ -1,0 +1,122 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+    <h2 class="text-warning">Your Cart ( {{ cart.len }} )</h2>
+    {% if cart.len != 0 %}
+        <div class="container-products text-light">
+            {% for item in cart %}
+                <div class="container-product">
+                    <div class="container-product-image">
+                        <img src="{% static 'images/' %}{{ item.product.Image }}" alt="{{ item.product.Tittle }}" >
+                    </div>
+                    <div class="container-product-information">
+                        <h5>{{ item.product.Tittle }}</h5>
+                        <p>{{ item.product.Description }}</p>
+                        <p>Price : {{ item.product.Price }}$</p>
+                    </div>
+                    <div class="container-product-quantity">
+                        {% if item.product.id %}
+                            <form action="{% url 'cart_add' item.product.id %}" method="POST">
+                                {% csrf_token %}
+                                <button class="btn btn-light" type="submit">+</button>
+                            </form>
+                            <p>{{ item.quantity }}</p>
+                            <form action="{% url 'cart_substract' item.product.id %}" method="post">
+                                {% csrf_token %}
+                                <button class="btn btn-light" type="submit">-</button>
+                            </form>
+                        {% else %}
+                            <p>Error: Product ID is missing</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="container-price-total">
+            <h4 class="text-light">Total Price : <span class="text-warning">{{ cart.get_total_price }}$</span></h4>
+        </div>
+        
+        <form action="{% url 'order_checkout' %}">
+            <button type="submit" class="btn btn-warning font-weight-bold">Continue</button>
+        </form>
+        <form action="{% url 'clear_cart' %}">
+            <button type="submit" class="btn btn-warning font-weight-bold">Clear Cart</button>
+        </form>
+    {% else %}
+        <div class="container-noavaliable">
+            <h2 class='text-center'>NO PRODUCTS AVALIABLE INT THE CART</h2>
+        </div>
+
+    {% endif %}
+
+    <style>
+
+        .container-products {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 50px;
+        }
+        
+        .container-product {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-radius: 20px;
+
+        }
+        
+        .container-product-information p {
+            margin: 20px 0px;
+        }
+
+        .container-product-image img {
+            height: 150px;
+            width: 250px;
+            margin-right: 20px;
+            border-radius: 15px;
+            object-fit:cover;
+        }
+        
+        .container-product-information {
+            flex: 1;
+        }
+        
+        .container-product-quantity {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .container-product-quantity button {
+            background-color: #f8f9fa;
+            width: 50px;
+            font-size: 30px;
+        }
+        
+
+
+        .quantity-form {
+            display: inline;
+        }
+        
+        .quantity-btn {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 50% ;
+
+        }
+
+        .container-price-total{
+            margin-top: 30px
+        }
+
+        .container-noavaliable{
+            margin-top: 200px;
+        }
+    </style>
+{% endblock %}

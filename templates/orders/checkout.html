@@ -1,0 +1,47 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+    <h1>Checkout</h1>
+        <div class="container">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_first_name">First name:</label>
+                    {{ form.first_name }}
+                    <div class="text-danger">{{ form.first_name.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="id_last_name">Last name:</label>
+                    {{ form.last_name }}
+                    <div class="text-danger">{{ form.last_name.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="id_email">Email:</label>
+                    {{ form.email }}
+                    <div class="text-danger">{{ form.email.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="id_postal_code">Postal code:</label>
+                    {{ form.postal_code }}
+                    <div class="text-danger">{{ form.postal_code.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="id_city">City:</label>
+                    {{ form.city }}
+                    <div class="text-danger">{{ form.city.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="id_address">Address:</label>
+                    {{ form.address }}
+                    <div class="text-danger">{{ form.address.errors }}</div>
+                </div>
+                <div class="form-group">
+                    <label for="id_phone">Phone:</label>
+                    {{ form.phone }}
+                    <div class="text-danger">{{ form.phone.errors }}</div>
+                </div>
+                <button type="submit" class="btn btn-primary">Realizar Pedido</button>
+            </form>
+        </div>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="container">
+        <h1>Orders</h1>
+        <input type="text" placeholder="Buscar pedidos" class="search-bar">
+        <div class="filter-buttons">
+            <a href="{% url 'view_orders' %}?status=all" class="btn bg-warning {% if status_filter == 'all' %}active{% endif %}">All</a>
+            <a href="{% url 'view_orders' %}?status=pending" class="btn bg-warning {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+            <a href="{% url 'view_orders' %}?status=completed" class="btn bg-warning {% if status_filter == 'completed' %}active{% endif %}">Filled</a>
+            <a href="{% url 'view_orders' %}?status=cancelled" class="btn bg-warning {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
+
+        </div>
+        {% if orders|length != 0 %}
+        
+            <table class="text-center">
+                <thead>
+                    <tr>
+                        <th class="text-center">Id</th>
+                        <th class="text-center">Name</th>
+                        <th class="text-center">Surname</th>
+                        <th class="text-center">Adress</th>
+                        <th class="text-center">Postal code</th>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Products</th>
+                        <th class="text-center">State</th>
+                        <th class="text-center">Payment State</th>
+                        <th class="text-center">Contact </th>
+                        <th class="text-center">Actions </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                            <tr>
+                                <td><button class="view-order bg-warning">{{ order.id }}</button></td>
+                                <td>{{ order.first_name }}</td>
+                                <td>{{order.last_name}}</td>
+                                <td>{{ order.address }}</td>
+                                <td>{{ order.postal_code }}</td>
+                                <td>{{order.created_at}}</td>
+                                <td>
+                                    {% with order.orderitem_set.all as orderitems %}
+                                        {{ orderitems|join:", " }}
+                                    {% endwith %}
+                                </td>
+                                <td class="status preparing">
+                                    <form method="post" action="{% url 'update_order_status' order.id %}">
+                                        {% csrf_token %}
+                                        <select name="status" onchange="this.form.submit()">
+                                            <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Completed" {% if order.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                            <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td>
+                                    {{order.payment_state}}
+                                </td>
+                                <td>
+                                    <a href="https://wa.me/{{order.phone}}"  target="_blank">{{ order.phone }}</a>
+                                </td>
+                                <td>
+                                    <form action="{% url 'delete_orders' order.id %}" method="POST">
+                                        {% csrf_token %}
+                                        <button class="btn btn-danger" type="submit">
+                                            Delete Order
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+                
+        {% else %}
+
+        <p>No hay pedidos para mostrar.</p>
+
+        {% endif %}
+        
+    </div>
+
+
+    <style>
+
+        .container {
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .add-order {
+            float: right;
+            background-color: #ffcccb;
+            border: none;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .search-bar {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-buttons button {
+            background-color: #ffcccb;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-radius: 2000px;
+            margin-bottom: 20px;
+
+        }
+        
+        thead {
+            background-color: #f5f5f5;
+        }
+        
+        thead th {
+            text-align: left;
+            padding: 10px;
+        }
+        
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #fff;
+        }
+        
+        tbody td {
+            padding: 10px;
+        }
+        
+        .status {
+            padding: 5px 10px; 
+            color: #fff;
+            text-align: center;
+        }
+        
+        .status.preparing {
+            background-color: #ffa500;
+        }
+        
+        .status.pending {
+            background-color: #ffcc00;
+        }
+        
+        .status.ready {
+            background-color: #00cc66;
+        }
+        
+        .status.delivered {
+            background-color: #00bfff;
+        }
+        
+        .view-order {
+            background-color: #ffcccb;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+{% endblock %}

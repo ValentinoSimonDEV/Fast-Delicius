@@ -1,0 +1,18 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <p>Thank you for your order! We have received your details and will send you a confirmation email shortly. Additionally, we will contact you via WhatsApp using the phone number you provided in the form. If you have any questions or need further assistance, please don't hesitate to reach out to us.
+        Best regards,
+        [Fast Delicius]</p>
+    <p>Order ID: {{ order.id }}</p>
+    <h2>Order:</h2>
+    <ul>
+    {% for item in order.orderitem_set.all %}
+        <li>{{ item.product.Tittle }} - {{ item.quantity }} x {{ item.product.Price }}</li>
+    {% endfor %}
+    </ul>
+    <p>Total: {{ cart.get_total_price }}</p>
+
+{% endblock %}

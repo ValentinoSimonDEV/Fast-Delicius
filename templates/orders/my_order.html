@@ -1,0 +1,165 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="order-container">
+    {% if orders %}
+        <div class="order-header">
+            <h2>Order #{{ orders.id }}</h2>
+        </div>
+        <div class="order-status">
+            {% if orders.status == 'Pending'%}
+                <progress value="50" max="100" style="color: #ffc107;"></progress>
+            {% elif orders.status == 'Completed' %}
+                <progress value="100" max="100" style="color: #ffc107;"></progress>
+            {% elif orders.status == 'Cancelled' %}
+                <progress value="0" max="100" style="color: #ffc107;"></progress>
+            {% endif %}
+            <p>Order Status : {{ orders.status }}</p>
+
+            <p>Order Created : {{orders.created_at }}</p>
+        </div>
+        <div class="order-items">
+            <h3>Items in this order</h3>
+            <ul>
+                {% for item in orders.orderitem_set.all %}
+                <li class="order-item">
+                    <img src="{% static 'images/' %}{{ item.product.Image }}" alt="{{ item.product.Tittle }}" >
+                    <div class="item-details">
+                        <p>{{ item.quantity }} x {{ item.product.Tittle }}</p>
+                        <p>${{ item.price }}</p>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>``
+
+        <div class="order-summary">
+            <h3>Order Summary</h3>
+            <p>Subtotal: ${{  orders.total }}</p>
+            <p>Delivery: Free</p>
+            <p>Total: ${{ orders.total }}</p>
+        </div>
+        <div class="shipping-address">
+            <h3>Shipping Address</h3>
+            <p>Name : {{ orders.first_name }} {{ orders.last_name }}</p>
+            <p>Adress : {{ orders.address }}</p>
+            <p>{{ orders.city }}, {{ orders.postal_code }}</p>
+            <p>{{ orders.country }}</p>
+            <p>{{ orders.phone }}</p>
+        </div>
+        <div class="help-section">
+            <h3>Need help?</h3>
+            <p>If you have any questions, please contact us at <a href="mailto:help@pantry.com">help@pantry.com</a></p>
+        </div>
+    {% else %}
+    <p>No hay órdenes para mostrar</p>
+    {% endif %}
+</div>
+
+<style>
+.order-container {
+    color: #fff;
+    border-radius: 8px;
+}
+
+.order-header h2 {
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.order-status {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+}
+
+.order-status p {
+    margin: 0 10px;
+}
+
+progress[value] {
+    width: 100%;
+    height: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+progress[value]::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+progress[value]::-webkit-progress-value {
+    background-color: #ffc107;
+    border-radius: 8px;
+}
+
+progress[value]::-moz-progress-bar {
+    background-color: #ffc107;
+    border-radius: 8px;
+}
+
+.order-items{
+    margin-top: 50px;
+}
+
+.order-items h3, .order-summary h3, .shipping-address h3, .help-section h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.order-items ul {
+    list-style: none;
+    padding: 0;
+}
+
+.order-item{
+    display: flex;
+    align-items: center;
+    margin: 30px 0px;
+}
+
+.order-items h3 {
+    font-size: 40px;
+}
+
+.order-item img {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.item-details {
+    margin-left: 10px;
+}
+
+.item-details p {
+    font-size: 25px;
+    margin: 0;
+}
+
+.order-summary p, .shipping-address p, .help-section p {
+    margin: 5px 0;
+}
+
+.help-section a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.help-section a:hover {
+    text-decoration: underline;
+}
+
+
+.order-summary h3 {
+    font-size: 40px;
+}
+</style>
+{% endblock %}
