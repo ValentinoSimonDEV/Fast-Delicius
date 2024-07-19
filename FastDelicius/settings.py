@@ -20,8 +20,11 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = ['127.0.0.1']
 
-
+CSRF_TRUSTED_ORIGINS = [
+    '127.0.0.1'
+]
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
 
 
