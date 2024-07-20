@@ -47,7 +47,7 @@ class order_checkout(View):
                     phone = form.cleaned_data['phone']
                 )
                 order.save()
-                order.clear()
+                cart.clear()
                 total = 0
                 for item in cart:
                     total += item['price'] * item['quantity']
@@ -65,12 +65,12 @@ class order_checkout(View):
 
 class my_order(View):
     def get(self , request):
-        session_key = request.session_key
+        session_key = request.session.session_key
         if not session_key:
             return render(request , 'orders/my_orders.html' , {'orders' : []})
         orders = Order.objects.filter(session_key=session_key).first()
         context = {
-            orders
+            'orders' : orders
         }
         return render(request , 'orders/my_order.html' , context)
 
@@ -79,7 +79,7 @@ logger = logging.getLogger(__name__)
 
 class create_preference(View):
     def get( self , request , order_id):
-        order = get_object_or_404(order , id = order_id)
+        order = get_object_or_404(Order , id = order_id)
         sdk = mercadopago.SDK("APP_USR-2335391200775091-071617-dff615acc3ef15518752884d9ad31b09-1899373822")
         preference_data = {
             "items": [
