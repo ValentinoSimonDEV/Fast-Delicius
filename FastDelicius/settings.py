@@ -19,7 +19,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 
-ALLOWED_HOSTS = config(['ALLOWED_HOSTS']).split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 
 
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
@@ -96,6 +96,7 @@ DATABASES = {
         'NAME': config('DATABASE_NAME'),
         'USER': config('DATABASE_USER'),
         'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST' : config('DATABASE_HOST'),
         'PORT': config('DATABASE_PORT'),
     }
 }
