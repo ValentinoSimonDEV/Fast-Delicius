@@ -99,7 +99,7 @@ class create_preference(View):
                 "pending": request.build_absolute_uri('/pending/'),
             },
             "auto_return": "approved",
-            "notification_url": "http://04c5-190-173-134-178.ngrok-free.app/webhook/"
+            "notification_url": "https://improved-disco-pjg9xrqgqgprh6qp9-8000.app.github.dev/webhook/"
         }
         try:
             result = sdk.preference().create(preference_data)
