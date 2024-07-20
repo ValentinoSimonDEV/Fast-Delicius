@@ -99,7 +99,9 @@ class create_preference(View):
                 "pending": request.build_absolute_uri('/pending/'),
             },
             "auto_return": "approved",
-            "notification_url": "https://head-jerry-valentinodeveloper-cbfef9c4.koyeb.app/webhook/"
+            "notification_url": "https://head-jerry-valentinodeveloper-cbfef9c4.koyeb.app/webhook/",
+            "external_reference": str(order.id),
+
         }
         try:
             result = sdk.preference().create(preference_data)
@@ -120,13 +122,23 @@ class webhook(View):
                 notification_data = json.loads(request.body)
                 print('Webhook received' , notification_data)
 
-                return JsonResponse({'status' : 'success'} , status =200)
+                if notification_data['action'] == 'payment.created':
+                    payment_id = notification_data['external_reference']
+                    order = get_object_or_404(Order , id = payment_id)
+                    if order:
+                        order.payment_state = True
+                        order.save()
+                        return JsonResponse({'status' : 'success'} , status = 200)
+                    else:
+                        return JsonResponse({'error' : 'Order not found'} , status = 404)
+
+                return JsonResponse({'status' : 'success'} , status = 200)
             except json.JSONDecodeError:
-                return JsonResponse({'error' : 'Invalid JSON'} , status=400)
-        return JsonResponse({'error' : 'invalidad method' } , status=405)
+                return JsonResponse({'error' : 'Invalid JSON'} , status = 400)
+        return JsonResponse({'error' : 'invalidad method' } , status = 405)
     
     def get(self , request):
-        return JsonResponse({'error' : 'Invalid method'} , status=405)
+        return JsonResponse({'error' : 'Invalid method'} , status = 405)
 
 
 class payment_success(View):
