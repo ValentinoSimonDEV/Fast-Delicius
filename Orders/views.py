@@ -46,8 +46,6 @@ class order_checkout(View):
                     address = form.cleaned_data['address'],
                     phone = form.cleaned_data['phone']
                 )
-                order.save()
-                cart.clear()
                 total = 0
                 for item in cart:
                     total += item['price'] * item['quantity']
@@ -57,8 +55,10 @@ class order_checkout(View):
                         price = item['price'],
                         quantity = item['quantity']
                     )
-                    order.total = total
-                    return redirect('create_preference' , order_id = order.id)
+                order.total = total
+                order.save()
+                cart.clear()
+                return redirect('create_preference' , order_id = order.id)
             else:
                 form = CheckOutForm()
 
@@ -80,7 +80,7 @@ logger = logging.getLogger(__name__)
 class create_preference(View):
     def get( self , request , order_id):
         order = get_object_or_404(Order , id = order_id)
-        sdk = mercadopago.SDK("APP_USR-2335391200775091-071617-dff615acc3ef15518752884d9ad31b09-1899373822")
+        sdk = mercadopago.SDK("APP_USR-6564767660186467-071215-bf95ffce87575b69db4c78b8905e179d-1899373822")
         preference_data = {
             "items": [
                 {
@@ -103,7 +103,7 @@ class create_preference(View):
         }
         try:
             result = sdk.preference().create(preference_data)
-            print("preference created successfully")
+            print("preference created successfully" , result)
             preference = result['response']
             return HttpResponseRedirect(preference['init_point'])
         
