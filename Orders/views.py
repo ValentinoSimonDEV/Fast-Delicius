@@ -99,7 +99,7 @@ class create_preference(View):
                 "pending": request.build_absolute_uri('/pending/'),
             },
             "auto_return": "approved",
-            "notification_url": "https://improved-disco-pjg9xrqgqgprh6qp9-8000.app.github.dev/webhook/"
+            "notification_url": "https://head-jerry-valentinodeveloper-cbfef9c4.koyeb.app/webhook/"
         }
         try:
             result = sdk.preference().create(preference_data)
