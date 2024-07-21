@@ -115,30 +115,45 @@ class create_preference(View):
         
 
 @method_decorator(csrf_exempt, name='dispatch')
-class webhook(View):
-    def post(self, request , *args , **kwargs):
+class Webhook(View):
+    def post(self, request, *args, **kwargs):
         if request.method == 'POST':
             try:
                 notification_data = json.loads(request.body)
                 print('Webhook received', notification_data)
 
-                if 'action' == notification_data :
+                # Verificar la presencia de 'action'
+                if 'action' in notification_data:
                     if notification_data['action'] == 'payment.created':
-                        payment_id = notification_data.get('data' , {}).get('id')
-                        order = get_object_or_404(Order, id=payment_id)
-                        order.payment_state = True
-                        order.save()
+                        payment_id = notification_data.get('data', {}).get('id')
+                        if payment_id:
+                            order = get_object_or_404(Order, payment_id=payment_id)
+                            order.payment_state = True
+                            order.save()
+                        else:
+                            return JsonResponse({'status': 'error', 'message': 'ID de pago no encontrado en la notificación'}, status=400)
+                
+                # Verificar la presencia de 'topic'
                 elif 'topic' in notification_data:
                     if notification_data['topic'] == 'payment':
-                        payment_id = notification_data.get('id')
-                        order = get_object_or_404(Order, id=payment_id)
-                        order.payment_state = True
-                        order.save()
+                        resource_url = notification_data.get('resource')
+                        if resource_url:
+                            payment_id = resource_url.split('/')[-1]
+                            order = get_object_or_404(Order, payment_id=payment_id)
+                            order.payment_state = True
+                            order.save()
+                        else:
+                            return JsonResponse({'status': 'error', 'message': 'Resource URL no encontrada en la notificación'}, status=400)
+                
                 else:
-                    return JsonResponse({'status' : 'error', 'message' : 'formato de dato no reconocido'} , status = 400 )
-                return JsonResponse({'status' : 'success'} , status = 200)
-            except Exception as e :
-                return JsonResponse({'status' : 'erorr' , 'message' : str(e)} , status = 500 )
+                    return JsonResponse({'status': 'error', 'message': 'Formato de datos no reconocido'}, status=400)
+                
+                return JsonResponse({'status': 'success'}, status=200)
+            
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 class payment_success(View):
     def get(self , request):
