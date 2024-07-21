@@ -116,30 +116,29 @@ class create_preference(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class webhook(View):
-    def post(self , request):
+    def post(self, request , *args , **kwargs):
         if request.method == 'POST':
             try:
                 notification_data = json.loads(request.body)
-                print('Webhook received' , notification_data)
+                print('Webhook received', notification_data)
 
-                if notification_data['action'] == 'payment.created':
-                    payment_id = notification_data['external_reference']
-                    order = get_object_or_404(Order , id = payment_id)
-                    if order:
+                if 'action' == notification_data :
+                    if notification_data['action'] == 'payment.created':
+                        payment_id = notification_data.get('data' , {}).get('id')
+                        order = get_object_or_404(Order, id=payment_id)
                         order.payment_state = True
                         order.save()
-                        return JsonResponse({'status' : 'success'} , status = 200)
-                    else:
-                        return JsonResponse({'error' : 'Order not found'} , status = 404)
-
+                elif 'topic' in notification_data:
+                    if notification_data['topic'] == 'payment':
+                        payment_id = notification_data.get('id')
+                        order = get_object_or_404(Order, id=payment_id)
+                        order.payment_state = True
+                        order.save()
+                else:
+                    return JsonResponse({'status' : 'error', 'message' : 'formato de dato no reconocido'} , status = 400 )
                 return JsonResponse({'status' : 'success'} , status = 200)
-            except json.JSONDecodeError:
-                return JsonResponse({'error' : 'Invalid JSON'} , status = 400)
-        return JsonResponse({'error' : 'invalidad method' } , status = 405)
-    
-    def get(self , request):
-        return JsonResponse({'error' : 'Invalid method'} , status = 405)
-
+            except Exception as e :
+                return JsonResponse({'status' : 'erorr' , 'message' : str(e)} , status = 500 )
 
 class payment_success(View):
     def get(self , request):
