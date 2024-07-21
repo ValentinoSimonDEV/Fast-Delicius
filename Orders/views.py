@@ -119,8 +119,10 @@ class Webhook(View):
     def post(self, request, *args, **kwargs):
         if request.method == 'POST':
             try:
+                # Imprimir request.body para depuración
+                print('Request body:', request.body)
                 notification_data = json.loads(request.body)
-                print('Webhook received', notification_data)
+                print('Webhook received:', notification_data)
 
                 # Verificar la presencia de 'action'
                 if 'action' in notification_data:
@@ -132,7 +134,7 @@ class Webhook(View):
                             order.save()
                         else:
                             return JsonResponse({'status': 'error', 'message': 'ID de pago no encontrado en la notificación'}, status=400)
-                
+
                 # Verificar la presencia de 'topic'
                 elif 'topic' in notification_data:
                     if notification_data['topic'] == 'payment':
@@ -144,17 +146,20 @@ class Webhook(View):
                             order.save()
                         else:
                             return JsonResponse({'status': 'error', 'message': 'Resource URL no encontrada en la notificación'}, status=400)
-                
+
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Formato de datos no reconocido'}, status=400)
-                
+
                 return JsonResponse({'status': 'success'}, status=200)
-            
+
+            except json.JSONDecodeError:
+                return JsonResponse({'status': 'error', 'message': 'JSON inválido'}, status=400)
+            except Order.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Orden no encontrada'}, status=404)
             except Exception as e:
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
-
 class payment_success(View):
     def get(self , request):
         order = Order.objects.filter(session_key = request.session.session_key).first()
