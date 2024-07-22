@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'Accounts',
     'Orders',
     'sslserver',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -166,5 +167,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
-
+CRONJOBS = [
+    ('30 * * * *', 'myapp.cron.delete_unpaid_orders')
+]

@@ -11,6 +11,7 @@ from .forms import CheckOutForm
 from Cart.cart import Cart
 import mercadopago , json , requests
 import logging
+import datetime
 
 
 class order_checkout(View):
@@ -152,7 +153,6 @@ class webhook(View):
             external_reference = payment_info.get('external_reference')
             order = get_object_or_404(Order, id=external_reference)
             order.payment_state = payment_info['status'] == 'approved'
-            order.status = 'Completed' if order.payment_state else 'Pending'
             order.save()
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
@@ -183,6 +183,14 @@ class webhook(View):
         order_info = sdk.merchant_order().get(merchant_order_id)
         return order_info['response']
     
+    class DeleteUnpaidOrders(View):
+        def get(self , request):
+            time_limit = datetime.datetime.now() - datetime.timedelta(minutes=30)
+            
+            unpaid_orders = Order.objects.filter(payment_state = False , created__lt = time_limit)
+            unpaid_orders.delete()
+            return JsonResponse({'status' : 'success' , 'message' : 'Unpaid orders'})
+
 class payment_success(View):
     def get(self , request):
         order = Order.objects.filter(session_key = request.session.session_key).first()
