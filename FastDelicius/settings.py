@@ -49,13 +49,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "unfold",  
+    'rest_framework', # Api Swagger
+    'drf_yasg', # Api Swagger
+    "unfold",  # Menu administration django
     "unfold.contrib.filters",  
-    "unfold.contrib.forms",  
-    "unfold.contrib.inlines",  
-    "unfold.contrib.import_export",  
-    "unfold.contrib.guardian",  
-    "unfold.contrib.simple_history", 
+    "unfold.contrib.forms",  # Menu administration django
+    "unfold.contrib.inlines", # Menu administration django
+    "unfold.contrib.import_export", # Menu administration django
+    "unfold.contrib.guardian", # Menu administration django
+    "unfold.contrib.simple_history", # Menu administration django
     "django.contrib.admin", 
     'phone_field',
     'Products',
@@ -167,6 +169,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-CRONJOBS = [
-    ('30 * * * *', 'myapp.cron.delete_unpaid_orders')
-]
+CELERY_BROKER_URL = 'https://head-jerry-valentinodeveloper-cbfef9c4.koyeb.app/'  # Cambia esto si usas otro backend
+CELERY_RESULT_BACKEND = 'https://head-jerry-valentinodeveloper-cbfef9c4.koyeb.app/'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'America/Argentina/Buenos_Aires'
+
