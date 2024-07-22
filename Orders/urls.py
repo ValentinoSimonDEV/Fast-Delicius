@@ -12,5 +12,5 @@ urlpatterns = [
     path('success/', payment_success.as_view() , name='payment_success'),
     path('failure/', payment_failure.as_view(), name='payment_failure'),
     path('pending/', payment_pending.as_view(), name='payment_pending'),
-    path('webhook/', webhook.as_view(), name='webhook'),
+    path('webhook/', webhook.as_view() , name='webhook'),
 ]

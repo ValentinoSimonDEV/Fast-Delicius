@@ -115,7 +115,7 @@ class create_preference(View):
         
 
 @method_decorator(csrf_exempt, name='dispatch')
-class Webhook(View):
+class webhook(View):
     def post(self, request, *args, **kwargs):
         if request.method == 'POST':
             try:
