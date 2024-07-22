@@ -179,7 +179,8 @@ class webhook(View):
             payment_info = self.get_payment_info(payment_id)
             external_reference = payment_info.get('external_reference')
             order = get_object_or_404(Order, id=external_reference)
-            order.payment_state = payment_info['status'] == 'approved'
+            if payment_info['status'] == 'approved':
+                order.payment_state = True
             order.save()
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
@@ -189,11 +190,11 @@ class webhook(View):
     def handle_merchant_order(self, merchant_order_id):
         try:
             order_info = self.get_merchant_order_info(merchant_order_id)
-            payment_info = order_info.get('payments', [])[0]  # Obtener el primer pago relacionado
+            payment_info = order_info.get('payments', [])[0] 
             external_reference = order_info.get('external_reference')
             order = get_object_or_404(Order, id=external_reference)
-            order.payment_state = payment_info['status'] == 'approved'
-            order.status = 'Completed' if order.payment_state else 'Pending'
+            if payment_info['status'] == 'approved':
+                order.payment_state = True
             order.save()
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
