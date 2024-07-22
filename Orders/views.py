@@ -118,27 +118,36 @@ class create_preference(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class webhook(View):
     def post(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            try:
+        try:
+            if 'id' in request.GET and 'topic' in request.GET:
+                topic = request.GET['topic']
+                if topic == 'payment':
+                    payment_id = request.GET['id']
+                    return self.handle_payment(payment_id)
+                elif topic == 'merchant_order':
+                    merchant_order_id = request.GET['id']
+                    return self.handle_merchant_order(merchant_order_id)
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Tópico no reconocido'}, status=400)
+            else:
                 notification_data = json.loads(request.body)
                 topic = notification_data.get('topic')
                 if topic == 'payment':
-                    return self.handle_payment(notification_data)
+                    return self.handle_payment(notification_data['data']['id'])
                 elif topic == 'merchant_order':
-                    return self.handle_merchant_order(notification_data)
+                    return self.handle_merchant_order(notification_data['id'])
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Tópico no reconocido'}, status=400)
-            except json.JSONDecodeError:
-                return JsonResponse({'status': 'error', 'message': 'JSON inválido'}, status=400)
-            except Order.DoesNotExist:
-                return JsonResponse({'status': 'error', 'message': 'Orden no encontrada'}, status=404)
-            except Exception as e:
-                logger.error("Error processing webhook: %s", str(e))
-                return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'JSON inválido'}, status=400)
+        except Order.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Orden no encontrada'}, status=404)
+        except Exception as e:
+            logger.error("Error processing webhook: %s", str(e))
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    def handle_payment(self, notification_data):
-        payment_id = notification_data.get('data', {}).get('id')
-        if payment_id:
+    def handle_payment(self, payment_id):
+        try:
             payment_info = self.get_payment_info(payment_id)
             external_reference = payment_info.get('external_reference')
             order = get_object_or_404(Order, id=external_reference)
@@ -146,11 +155,12 @@ class webhook(View):
             order.status = 'Completed' if order.payment_state else 'Pending'
             order.save()
             return JsonResponse({'status': 'success'}, status=200)
-        return JsonResponse({'status': 'error', 'message': 'ID de pago no encontrado en la notificación'}, status=400)
+        except Exception as e:
+            logger.error("Error handling payment: %s", str(e))
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    def handle_merchant_order(self, notification_data):
-        merchant_order_id = notification_data.get('id')
-        if merchant_order_id:
+    def handle_merchant_order(self, merchant_order_id):
+        try:
             order_info = self.get_merchant_order_info(merchant_order_id)
             payment_info = order_info.get('payments', [])[0]  # Obtener el primer pago relacionado
             external_reference = order_info.get('external_reference')
@@ -159,8 +169,20 @@ class webhook(View):
             order.status = 'Completed' if order.payment_state else 'Pending'
             order.save()
             return JsonResponse({'status': 'success'}, status=200)
-        return JsonResponse({'status': 'error', 'message': 'ID de orden de comerciante no encontrado en la notificación'}, status=400)
-            
+        except Exception as e:
+            logger.error("Error handling merchant order: %s", str(e))
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    def get_payment_info(self, payment_id):
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+        payment_info = sdk.payment().get(payment_id)
+        return payment_info['response']
+
+    def get_merchant_order_info(self, merchant_order_id):
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+        order_info = sdk.merchant_order().get(merchant_order_id)
+        return order_info['response']
+    
 class payment_success(View):
     def get(self , request):
         order = Order.objects.filter(session_key = request.session.session_key).first()
