@@ -126,32 +126,12 @@ class webhook(View):
 
                 # Verificar la presencia de 'action'
                 if 'action' in notification_data:
-                    if notification_data['action'] == 'payment.created':
-                        payment_id = notification_data.get('data', {}).get('id')
-                        if payment_id:
-                            order = get_object_or_404(Order, payment_id=payment_id)
-                            order.payment_state = True
-                            order.save()
-                        else:
-                            return JsonResponse({'status': 'error', 'message': 'ID de pago no encontrado en la notificación'}, status=400)
-
+                    return self.handle_action(notification_data)
                 # Verificar la presencia de 'topic'
                 elif 'topic' in notification_data:
-                    if notification_data['topic'] == 'payment':
-                        resource_url = notification_data.get('resource')
-                        if resource_url:
-                            payment_id = resource_url.split('/')[-1]
-                            order = get_object_or_404(Order, payment_id=payment_id)
-                            order.payment_state = True
-                            order.save()
-                        else:
-                            return JsonResponse({'status': 'error', 'message': 'Resource URL no encontrada en la notificación'}, status=400)
-
+                    return self.handle_topic(notification_data)
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Formato de datos no reconocido'}, status=400)
-
-                return JsonResponse({'status': 'success'}, status=200)
-
             except json.JSONDecodeError:
                 return JsonResponse({'status': 'error', 'message': 'JSON inválido'}, status=400)
             except Order.DoesNotExist:
@@ -160,6 +140,31 @@ class webhook(View):
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+    def handle_action(self, notification_data):
+        if notification_data['action'] == 'payment.created':
+            payment_id = notification_data.get('data', {}).get('id')
+            if payment_id:
+                order = get_object_or_404(Order, payment_id=payment_id)
+                order.payment_state = True
+                order.save()
+                return JsonResponse({'status': 'success'}, status=200)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'ID de pago no encontrado en la notificación'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'Acción no reconocida'}, status=400)
+
+    def handle_topic(self, notification_data):
+        if notification_data['topic'] == 'payment':
+            resource_url = notification_data.get('resource')
+            if resource_url:
+                payment_id = resource_url.split('/')[-1]
+                order = get_object_or_404(Order, payment_id=payment_id)
+                order.payment_state = True
+                order.save()
+                return JsonResponse({'status': 'success'}, status=200)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Resource URL no encontrada en la notificación'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'Tópico no reconocido'}, status=400)
 class payment_success(View):
     def get(self , request):
         order = Order.objects.filter(session_key = request.session.session_key).first()
