@@ -123,23 +123,43 @@ class webhook(View):
                 notification_data = json.loads(request.body)
                 topic = notification_data.get('topic')
                 if topic == 'payment':
-                    payment_id = notification_data['data']['id']
-                    payment_info = self.get_payment_info(payment_id)
-                    external_reference = payment_info.get('external_reference')
-                    
-                    order = get_object_or_404(Order, id=external_reference)
-                    order.payment_state = payment_info['status'] == 'approved'
-                    order.status = 'Completed' if order.payment_state else 'Pending'
-                    order.save()
-                    return JsonResponse({'status': 'success'}, status=200)
-                return JsonResponse({'status': 'error', 'message': 'Tópico no reconocido'}, status=400)
+                    return self.handle_payment(notification_data)
+                elif topic == 'merchant_order':
+                    return self.handle_merchant_order(notification_data)
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Tópico no reconocido'}, status=400)
             except json.JSONDecodeError:
                 return JsonResponse({'status': 'error', 'message': 'JSON inválido'}, status=400)
             except Order.DoesNotExist:
                 return JsonResponse({'status': 'error', 'message': 'Orden no encontrada'}, status=404)
             except Exception as e:
-                logger.error("Error processing webhook:", str(e))
+                logger.error("Error processing webhook: %s", str(e))
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    def handle_payment(self, notification_data):
+        payment_id = notification_data.get('data', {}).get('id')
+        if payment_id:
+            payment_info = self.get_payment_info(payment_id)
+            external_reference = payment_info.get('external_reference')
+            order = get_object_or_404(Order, id=external_reference)
+            order.payment_state = payment_info['status'] == 'approved'
+            order.status = 'Completed' if order.payment_state else 'Pending'
+            order.save()
+            return JsonResponse({'status': 'success'}, status=200)
+        return JsonResponse({'status': 'error', 'message': 'ID de pago no encontrado en la notificación'}, status=400)
+
+    def handle_merchant_order(self, notification_data):
+        merchant_order_id = notification_data.get('id')
+        if merchant_order_id:
+            order_info = self.get_merchant_order_info(merchant_order_id)
+            payment_info = order_info.get('payments', [])[0]  # Obtener el primer pago relacionado
+            external_reference = order_info.get('external_reference')
+            order = get_object_or_404(Order, id=external_reference)
+            order.payment_state = payment_info['status'] == 'approved'
+            order.status = 'Completed' if order.payment_state else 'Pending'
+            order.save()
+            return JsonResponse({'status': 'success'}, status=200)
+        return JsonResponse({'status': 'error', 'message': 'ID de orden de comerciante no encontrado en la notificación'}, status=400)
             
 class payment_success(View):
     def get(self , request):
