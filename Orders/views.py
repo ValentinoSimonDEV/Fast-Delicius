@@ -174,12 +174,12 @@ class webhook(View):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     def get_payment_info(self, payment_id):
-        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+        sdk = mercadopago.SDK('APP_USR-6564767660186467-071215-bf95ffce87575b69db4c78b8905e179d-1899373822')
         payment_info = sdk.payment().get(payment_id)
         return payment_info['response']
 
     def get_merchant_order_info(self, merchant_order_id):
-        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+        sdk = mercadopago.SDK('APP_USR-6564767660186467-071215-bf95ffce87575b69db4c78b8905e179d-1899373822')
         order_info = sdk.merchant_order().get(merchant_order_id)
         return order_info['response']
     
